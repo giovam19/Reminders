@@ -4,4 +4,7 @@
     <string name="button">Button</string>
     <string name="secondary_color">Secondary color</string>
     <string name="email_icon">email icon</string>
+    <string name="tasksButton">Tasks</string>
+    <string name="birthdaysButton">BirthDays</string>
+    <string name="settingsButton">Settings</string>
 </resources>
