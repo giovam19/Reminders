@@ -6,5 +6,6 @@
     <string name="email_icon">email icon</string>
     <string name="tasksButton">Tasks</string>
     <string name="birthdaysButton">BirthDays</string>
+    <string name="addButton">Add</string>
     <string name="settingsButton">Settings</string>
 </resources>
