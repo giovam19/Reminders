@@ -3,7 +3,6 @@ package com.example.bdreminder
 import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -33,15 +32,26 @@ class MainActivity : AppCompatActivity() {
         recyclerView = findViewById(R.id.reminderList)
         addButton = findViewById(R.id.addB)
 
-        val color = ContextCompat.getColor(this, R.color.blue)
-        taskButton.setColorFilter(color)
+        val blueColor = ContextCompat.getColor(this, R.color.blue)
+        val blackColor = ContextCompat.getColor(this, R.color.black)
+        taskButton.setColorFilter(blueColor)
 
         taskButton.setOnClickListener {
-            Toast.makeText(this, "Muestra Tasks", Toast.LENGTH_SHORT).show()
+            taskButton.setColorFilter(blueColor)
+            bdButton.setColorFilter(blackColor)
+            addButton.setColorFilter(blackColor)
         }
 
         bdButton.setOnClickListener {
-            Toast.makeText(this, "Muestra BDs", Toast.LENGTH_SHORT).show()
+            taskButton.setColorFilter(blackColor)
+            bdButton.setColorFilter(blueColor)
+            addButton.setColorFilter(blackColor)
+        }
+
+        addButton.setOnClickListener {
+            taskButton.setColorFilter(blackColor)
+            bdButton.setColorFilter(blackColor)
+            addButton.setColorFilter(blueColor)
         }
 
         recyclerView.layoutManager = LinearLayoutManager(this)
