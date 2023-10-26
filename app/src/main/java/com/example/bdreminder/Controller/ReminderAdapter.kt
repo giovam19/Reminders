@@ -1,4 +1,4 @@
-package com.example.bdreminder
+package com.example.bdreminder.Controller
 
 import android.view.LayoutInflater
 import android.view.View
@@ -6,6 +6,8 @@ import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.bdreminder.Model.Reminders
+import com.example.bdreminder.R
 
 class ReminderAdapter(private val items: List<Reminders>) : RecyclerView.Adapter<ReminderAdapter.ViewHolder>() {
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

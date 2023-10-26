@@ -14,41 +14,9 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:text="@string/app_name"
+        android:textSize="25sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:textSize="25sp"/>
-
-    <Button
-        android:id="@+id/tasks"
-        android:layout_width="110dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginBottom="24dp"
-        android:text="@string/tasksButton"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <Button
-        android:id="@+id/add"
-        android:layout_width="80dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="45dp"
-        android:layout_marginEnd="46dp"
-        android:layout_marginBottom="24dp"
-        android:text="@string/addButton"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/bd"
-        app:layout_constraintStart_toEndOf="@+id/tasks" />
-
-    <Button
-        android:id="@+id/bd"
-        android:layout_width="110dp"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="24dp"
-        android:text="@string/birthdaysButton"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/reminderList"
@@ -57,10 +25,43 @@
         android:layout_marginTop="8dp"
         android:layout_marginBottom="16dp"
         android:background="@color/gray"
-        app:layout_constraintBottom_toTopOf="@+id/tasks"
+        app:layout_constraintBottom_toTopOf="@+id/tasksB"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/titulo" />
+
+    <ImageView
+        android:id="@+id/tasksB"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="60dp"
+        android:layout_marginBottom="24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/todo_item" />
+
+    <ImageView
+        android:id="@+id/bdB"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="60dp"
+        android:layout_marginBottom="24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@drawable/birth_item" />
+
+    <ImageView
+        android:id="@+id/addB"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="83dp"
+        android:layout_marginEnd="83dp"
+        android:layout_marginBottom="24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/bdB"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/tasksB"
+        app:srcCompat="@drawable/add_item" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

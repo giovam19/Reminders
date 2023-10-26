@@ -1,4 +1,4 @@
-package com.example.bdreminder
+package com.example.bdreminder.Controller
 
 import android.graphics.Rect
 import android.view.View
