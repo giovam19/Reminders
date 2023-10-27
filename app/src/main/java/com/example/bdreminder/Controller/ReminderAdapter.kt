@@ -23,7 +23,7 @@ class ReminderAdapter(private val items: List<Reminders>) : RecyclerView.Adapter
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
         holder.texto.text = item.name
-        holder.check.isChecked = item.always
+        holder.check.isChecked = item.type == Reminders.ReminderTypes.EVENT
     }
 
     override fun getItemCount(): Int {

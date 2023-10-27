@@ -18,7 +18,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var bdButton: ImageView
     lateinit var addButton: ImageView
     lateinit var recyclerView : RecyclerView
-    @SuppressLint("MissingInflatedId")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -26,14 +26,18 @@ class MainActivity : AppCompatActivity() {
         val lista = Reminders.factory()
         val adapter = ReminderAdapter(lista)
         val itemDecoration = ReminderItemDecorator()
+        val blueColor = ContextCompat.getColor(this, R.color.blue)
+        val blackColor = ContextCompat.getColor(this, R.color.black)
 
         taskButton = findViewById(R.id.tasksB)
         bdButton = findViewById(R.id.bdB)
-        recyclerView = findViewById(R.id.reminderList)
         addButton = findViewById(R.id.addB)
+        recyclerView = findViewById(R.id.reminderList)
 
-        val blueColor = ContextCompat.getColor(this, R.color.blue)
-        val blackColor = ContextCompat.getColor(this, R.color.black)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = adapter
+        recyclerView.addItemDecoration(itemDecoration)
+
         taskButton.setColorFilter(blueColor)
 
         taskButton.setOnClickListener {
@@ -53,9 +57,5 @@ class MainActivity : AppCompatActivity() {
             bdButton.setColorFilter(blackColor)
             addButton.setColorFilter(blueColor)
         }
-
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = adapter
-        recyclerView.addItemDecoration(itemDecoration)
     }
 }
