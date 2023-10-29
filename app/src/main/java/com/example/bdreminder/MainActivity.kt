@@ -1,8 +1,10 @@
 package com.example.bdreminder
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -11,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.bdreminder.Controller.ReminderAdapter
 import com.example.bdreminder.Controller.ReminderItemDecorator
 import com.example.bdreminder.Model.Reminders
+import java.lang.Exception
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,15 +22,47 @@ class MainActivity : AppCompatActivity() {
     lateinit var addButton: ImageView
     lateinit var recyclerView : RecyclerView
 
+    lateinit var list : List<Reminders>
+
+    var blueColor : Int = 0
+    var blackColor : Int = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val lista = Reminders.factory()
-        val adapter = ReminderAdapter(lista)
+        init()
+
+        taskButton.setOnClickListener {
+            setButtonFocus(taskButton)
+        }
+
+        bdButton.setOnClickListener {
+            setButtonFocus(bdButton)
+        }
+
+        addButton.setOnClickListener {
+            setButtonFocus(addButton)
+
+            val intent = Intent(this, AddActivity::class.java)
+            startActivity(intent)
+        }
+
+        setButtonFocus(taskButton)
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        setButtonFocus(taskButton)
+        //reload list
+    }
+
+    private fun init() {
+        list = Reminders.factory()
+
+        val adapter = ReminderAdapter(list)
         val itemDecoration = ReminderItemDecorator()
-        val blueColor = ContextCompat.getColor(this, R.color.blue)
-        val blackColor = ContextCompat.getColor(this, R.color.black)
 
         taskButton = findViewById(R.id.tasksB)
         bdButton = findViewById(R.id.bdB)
@@ -38,24 +73,22 @@ class MainActivity : AppCompatActivity() {
         recyclerView.adapter = adapter
         recyclerView.addItemDecoration(itemDecoration)
 
-        taskButton.setColorFilter(blueColor)
+        blueColor = ContextCompat.getColor(this, R.color.blue)
+        blackColor = ContextCompat.getColor(this, R.color.black)
+    }
 
-        taskButton.setOnClickListener {
-            taskButton.setColorFilter(blueColor)
-            bdButton.setColorFilter(blackColor)
-            addButton.setColorFilter(blackColor)
-        }
+    private fun cleanButtonColor() {
+        taskButton.setColorFilter(blackColor)
+        bdButton.setColorFilter(blackColor)
+        addButton.setColorFilter(blackColor)
+    }
 
-        bdButton.setOnClickListener {
-            taskButton.setColorFilter(blackColor)
-            bdButton.setColorFilter(blueColor)
-            addButton.setColorFilter(blackColor)
-        }
+    private fun setColorFocus(button: ImageView) {
+        button.setColorFilter(blueColor)
+    }
 
-        addButton.setOnClickListener {
-            taskButton.setColorFilter(blackColor)
-            bdButton.setColorFilter(blackColor)
-            addButton.setColorFilter(blueColor)
-        }
+    fun setButtonFocus(button: ImageView) {
+        cleanButtonColor()
+        setColorFocus(button)
     }
 }

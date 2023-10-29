@@ -1,15 +1,16 @@
 package com.example.bdreminder.Model
 
+import java.time.Year
 import java.util.Date
 
 class Reminders (
-    var id: Int,
     var name: String,
     var description: String,
-    var ejectTime: Int,
-    var date: Date,
+    var ejectTime: String,
+    var day: Int,
+    var month: Int,
+    var year: Int,
     var type: ReminderTypes) {
-
     enum class ReminderTypes {
         BIRTHDAY, EVENT
     }
@@ -19,10 +20,29 @@ class Reminders (
 
             for (i in 1..15) {
                 val t = if(i%2 == 0) ReminderTypes.BIRTHDAY else ReminderTypes.EVENT
-                lista.add(Reminders(i, "Task $i", "descripcion de task $i", 1, Date(), t))
+                lista.add(Reminders("Task $i", "descripcion de task $i", "13:00", 19, 5, 2000, t))
             }
 
             return lista
         }
+    }
+
+    fun dataIsValid() : Boolean {
+        if (name == "")
+            return false
+
+        if (ejectTime == "")
+            return false
+
+        if (day == 0)
+            return false
+
+        if (month == 0)
+            return false
+
+        if (year == 0)
+            return false
+
+        return true
     }
 }
