@@ -1,19 +1,18 @@
 package com.example.bdreminder
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Button
 import android.widget.ImageView
-import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.bdreminder.Controller.FileManager
 import com.example.bdreminder.Controller.ReminderAdapter
 import com.example.bdreminder.Controller.ReminderItemDecorator
+import com.example.bdreminder.Controller.ReminderTouchHelper
 import com.example.bdreminder.Model.Reminders
-import java.lang.Exception
 
 class MainActivity : AppCompatActivity() {
 
@@ -21,6 +20,9 @@ class MainActivity : AppCompatActivity() {
     lateinit var bdButton: ImageView
     lateinit var addButton: ImageView
     lateinit var recyclerView : RecyclerView
+    lateinit var adapter : ReminderAdapter
+    lateinit var itemDecoration : ReminderItemDecorator
+    lateinit var itemTouchHelper: ItemTouchHelper
 
     lateinit var list : List<Reminders>
 
@@ -55,14 +57,19 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
 
         setButtonFocus(taskButton)
-        //reload list
+
+        list = getListData()
+        adapter = ReminderAdapter(list)
+        recyclerView.adapter = adapter
+
     }
 
     private fun init() {
-        list = Reminders.factory()
+        list = getListData()
 
-        val adapter = ReminderAdapter(list)
-        val itemDecoration = ReminderItemDecorator()
+        adapter = ReminderAdapter(list)
+        itemDecoration = ReminderItemDecorator()
+        itemTouchHelper = ItemTouchHelper(ReminderTouchHelper(adapter))
 
         taskButton = findViewById(R.id.tasksB)
         bdButton = findViewById(R.id.bdB)
@@ -72,6 +79,7 @@ class MainActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
         recyclerView.addItemDecoration(itemDecoration)
+        itemTouchHelper.attachToRecyclerView(recyclerView)
 
         blueColor = ContextCompat.getColor(this, R.color.blue)
         blackColor = ContextCompat.getColor(this, R.color.black)
@@ -90,5 +98,18 @@ class MainActivity : AppCompatActivity() {
     fun setButtonFocus(button: ImageView) {
         cleanButtonColor()
         setColorFocus(button)
+    }
+
+    fun getListData(): MutableList<Reminders> {
+        val manager = FileManager(this)
+        val data = manager.readFromDB()
+
+        return manager.convertToObject(data)
+    }
+
+    fun setEventList(): MutableList<Reminders> {
+        setButtonFocus(taskButton)
+
+        return list.filter { it.type == Reminders.ReminderTypes.EVENT } as MutableList<Reminders>
     }
 }

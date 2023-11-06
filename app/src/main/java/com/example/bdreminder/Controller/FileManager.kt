@@ -1,6 +1,7 @@
 package com.example.bdreminder.Controller
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import com.example.bdreminder.Model.Reminders
 import com.google.gson.Gson
@@ -20,29 +21,44 @@ class FileManager(var context: Context) {
                     json.append(it)
                 }
             }
+
+            Log.i("Object read: ", json.toString())
             return json.toString()
         } catch (e: Exception) {
-            e.printStackTrace()
-            Toast.makeText(context, "Error reading data!", Toast.LENGTH_SHORT).show()
+            e.message?.let { Log.i("Object read error: ", it) }
             return ""
         }
     }
 
-    fun writeToDB(reminder: Reminders) {
+    fun convertToObject(data: String): MutableList<Reminders> {
+        try {
+            val lista = Gson().fromJson(data, Array<Reminders>::class.java).toMutableList()
+
+            if (lista.isNotEmpty())
+                Log.i("Object converted", lista[0].name)
+
+            return lista
+        } catch (e : Exception) {
+            e.message?.let { Log.i("Convert json error: ", it) }
+            return mutableListOf<Reminders>()
+        }
+    }
+
+    fun writeToDB(reminder: Reminders, olds: MutableList<Reminders>) {
         val gson = Gson()
-        val jsonData = gson.toJson(reminder)
-        print(jsonData)
 
         try {
             val file = File(context.filesDir, filename)
-            val actuaData = gson.toJson(readFromDB())
 
+            olds.add(reminder)
+
+            val jsonData = gson.toJson(olds)
             val fileWriter = FileWriter(file)
-            fileWriter.write(actuaData)
+            fileWriter.write(jsonData)
+            Log.i("Object saved: ", jsonData)
             fileWriter.close()
         } catch (e : Exception) {
-            Toast.makeText(context, "Error saving new reminder!", Toast.LENGTH_SHORT).show()
-            e.printStackTrace()
+            e.message?.let { Log.i("Object write error: ", it) }
         }
     }
 }

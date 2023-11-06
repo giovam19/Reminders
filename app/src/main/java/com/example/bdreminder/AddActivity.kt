@@ -131,7 +131,13 @@ class AddActivity : AppCompatActivity() {
 
     private fun saveNewReminder(reminder: Reminders) {
         val manager = FileManager(this)
-        manager.writeToDB(reminder)
+        val actualData = manager.readFromDB()
+
+        val olds = manager.convertToObject(actualData)
+        manager.writeToDB(reminder, olds)
+
+        Toast.makeText(this@AddActivity, "Reminder saved!", Toast.LENGTH_SHORT).show()
+        finish()
     }
 
     fun setNotification(reminder: Reminders) {
