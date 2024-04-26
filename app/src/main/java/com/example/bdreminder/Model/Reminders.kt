@@ -1,9 +1,7 @@
 package com.example.bdreminder.Model
 
-import java.time.Year
-import java.util.Date
-
-class Reminders (
+class Reminders(
+    var id: String,
     var name: String,
     var description: String,
     var ejectTime: String,
@@ -20,7 +18,7 @@ class Reminders (
 
             for (i in 1..15) {
                 val t = if(i%2 == 0) ReminderTypes.BIRTHDAY else ReminderTypes.EVENT
-                lista.add(Reminders("Task $i", "descripcion de task $i", "13:00", 19, 5, 2000, t))
+                lista.add(Reminders(i.toString(),"Task $i", "descripcion de task $i", "13:00", 19, 5, 2000, t))
             }
 
             return lista
@@ -34,7 +32,7 @@ class Reminders (
         if (ejectTime == "")
             return false
 
-        if (day == 0)
+        if (day.toInt() == 0)
             return false
 
         if (month == 0)

@@ -2,63 +2,65 @@ package com.example.bdreminder.Controller
 
 import android.content.Context
 import android.util.Log
+import android.widget.ProgressBar
 import android.widget.Toast
 import com.example.bdreminder.Model.Reminders
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
 import com.google.gson.Gson
 import java.io.File
 import java.io.FileWriter
 
 class FileManager(var context: Context) {
     val filename = "db.json"
+    val db = Firebase.firestore
 
-    fun readFromDB(): String {
-        try {
-            val file = File(context.filesDir, filename)
-            val json = StringBuilder()
-            val bufferedReader = file.bufferedReader()
-            bufferedReader.useLines { lines ->
-                lines.forEach {
-                    json.append(it)
-                }
+    fun getReminders(callback: (MutableList<Reminders>) -> Unit) {
+        db.collection("Reminders").get().addOnSuccessListener { result ->
+            val lista = mutableListOf<Reminders>()
+            for (reminder in result) {
+                Log.d("Reminder ${reminder.id}", "${reminder.data}")
+                val r = Reminders(
+                    reminder.id,
+                    reminder.data["name"].toString(),
+                    reminder.data["description"].toString(),
+                    reminder.data["ejectime"].toString(),
+                    reminder.getLong("day")!!.toInt(),
+                    reminder.getLong("month")!!.toInt(),
+                    reminder.getLong("year")!!.toInt(),
+                    Reminders.ReminderTypes.valueOf(reminder.data["type"].toString())
+                )
+                lista.add(r)
+
+                callback(lista)
             }
-
-            Log.i("Object read: ", json.toString())
-            return json.toString()
-        } catch (e: Exception) {
-            e.message?.let { Log.i("Object read error: ", it) }
-            return ""
+        }.addOnFailureListener { exception ->
+            Log.w("Error getting documents","Error: $exception")
         }
     }
 
-    fun convertToObject(data: String): MutableList<Reminders> {
-        try {
-            val lista = Gson().fromJson(data, Array<Reminders>::class.java).toMutableList()
+    fun addReminder(reminder: Reminders, progressBar: ProgressBar) {
+        val obj = hashMapOf(
+            "name" to reminder.name,
+            "description" to reminder.description,
+            "day" to reminder.day,
+            "month" to reminder.month,
+            "year" to reminder.year,
+            "ejectime" to reminder.ejectTime,
+            "type" to reminder.type
+        )
 
-            if (lista.isNotEmpty())
-                Log.i("Object converted", lista[0].name)
+        progressBar.visibility = ProgressBar.VISIBLE
+        db.collection("Reminders").add(obj).addOnSuccessListener { added ->
+            Log.d("Reminder added Firebase: ", added.id)
 
-            return lista
-        } catch (e : Exception) {
-            e.message?.let { Log.i("Convert json error: ", it) }
-            return mutableListOf<Reminders>()
-        }
-    }
+            progressBar.visibility = ProgressBar.GONE
+            Toast.makeText(context, "Reminder saved!", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener { e ->
+            Log.w("Error adding Reminder Firebase: ", e)
 
-    fun writeToDB(reminder: Reminders, olds: MutableList<Reminders>) {
-        val gson = Gson()
-
-        try {
-            val file = File(context.filesDir, filename)
-
-            olds.add(reminder)
-
-            val jsonData = gson.toJson(olds)
-            val fileWriter = FileWriter(file)
-            fileWriter.write(jsonData)
-            Log.i("Object saved: ", jsonData)
-            fileWriter.close()
-        } catch (e : Exception) {
-            e.message?.let { Log.i("Object write error: ", it) }
+            progressBar.visibility = ProgressBar.GONE
+            Toast.makeText(context, "Fail saving Reminder", Toast.LENGTH_SHORT).show()
         }
     }
 }

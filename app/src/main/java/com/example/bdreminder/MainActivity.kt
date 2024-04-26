@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ImageView
+import android.widget.ProgressBar
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -16,15 +17,19 @@ import com.example.bdreminder.Model.Reminders
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var taskButton: ImageView
-    lateinit var bdButton: ImageView
+    lateinit var eventButton: ImageView
+    lateinit var birthButton: ImageView
     lateinit var addButton: ImageView
     lateinit var recyclerView : RecyclerView
     lateinit var adapter : ReminderAdapter
     lateinit var itemDecoration : ReminderItemDecorator
     lateinit var itemTouchHelper: ItemTouchHelper
+    lateinit var progressBar: ProgressBar
 
     lateinit var list : List<Reminders>
+
+    var actualType = Reminders.ReminderTypes.EVENT
+    lateinit var actualButton : ImageView
 
     var blueColor : Int = 0
     var blackColor : Int = 0
@@ -34,13 +39,25 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         init()
+        actualButton = eventButton
 
-        taskButton.setOnClickListener {
-            setButtonFocus(taskButton)
+        FileManager(this).getReminders(){ lista ->
+            progressBar.visibility = ProgressBar.GONE
+            list = lista
+            setList()
+            initList()
         }
 
-        bdButton.setOnClickListener {
-            setButtonFocus(bdButton)
+        eventButton.setOnClickListener {
+            actualType = Reminders.ReminderTypes.EVENT
+            actualButton = eventButton
+            setList()
+        }
+
+        birthButton.setOnClickListener {
+            actualType = Reminders.ReminderTypes.BIRTHDAY
+            actualButton = birthButton
+            setList()
         }
 
         addButton.setOnClickListener {
@@ -49,45 +66,42 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, AddActivity::class.java)
             startActivity(intent)
         }
-
-        setButtonFocus(taskButton)
     }
 
-    override fun onStart() {
-        super.onStart()
+    override fun onResume() {
+        super.onResume()
 
-        setButtonFocus(taskButton)
-
-        list = getListData()
-        adapter = ReminderAdapter(list)
-        recyclerView.adapter = adapter
-
+        progressBar.visibility = ProgressBar.VISIBLE
+        FileManager(this).getReminders(){ lista ->
+            progressBar.visibility = ProgressBar.GONE
+            list = lista
+            setList()
+        }
     }
 
     private fun init() {
-        list = getListData()
-
-        adapter = ReminderAdapter(list)
-        itemDecoration = ReminderItemDecorator()
-        itemTouchHelper = ItemTouchHelper(ReminderTouchHelper(adapter))
-
-        taskButton = findViewById(R.id.tasksB)
-        bdButton = findViewById(R.id.bdB)
+        eventButton = findViewById(R.id.tasksB)
+        birthButton = findViewById(R.id.bdB)
         addButton = findViewById(R.id.addB)
         recyclerView = findViewById(R.id.reminderList)
-
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = adapter
-        recyclerView.addItemDecoration(itemDecoration)
-        itemTouchHelper.attachToRecyclerView(recyclerView)
+        progressBar = findViewById(R.id.progressList)
 
         blueColor = ContextCompat.getColor(this, R.color.blue)
         blackColor = ContextCompat.getColor(this, R.color.black)
     }
 
+    private fun initList() {
+        itemDecoration = ReminderItemDecorator()
+        itemTouchHelper = ItemTouchHelper(ReminderTouchHelper(adapter))
+
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.addItemDecoration(itemDecoration)
+        itemTouchHelper.attachToRecyclerView(recyclerView)
+    }
+
     private fun cleanButtonColor() {
-        taskButton.setColorFilter(blackColor)
-        bdButton.setColorFilter(blackColor)
+        eventButton.setColorFilter(blackColor)
+        birthButton.setColorFilter(blackColor)
         addButton.setColorFilter(blackColor)
     }
 
@@ -100,16 +114,12 @@ class MainActivity : AppCompatActivity() {
         setColorFocus(button)
     }
 
-    fun getListData(): MutableList<Reminders> {
-        val manager = FileManager(this)
-        val data = manager.readFromDB()
+    fun setList() {
+        setButtonFocus(actualButton)
 
-        return manager.convertToObject(data)
-    }
+        val lista = list.filter { it.type == actualType }
 
-    fun setEventList(): MutableList<Reminders> {
-        setButtonFocus(taskButton)
-
-        return list.filter { it.type == Reminders.ReminderTypes.EVENT } as MutableList<Reminders>
+        adapter = ReminderAdapter(lista)
+        recyclerView.adapter = adapter
     }
 }

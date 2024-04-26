@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "473845261322",
+    "project_id": "reminders-2b41e",
+    "storage_bucket": "reminders-2b41e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:473845261322:android:dd994cfc17b0157135ebf3",
+        "android_client_info": {
+          "package_name": "com.example.bdreminder"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCe5Hm0LwkK_jxzSBweS1wDIJkUzenXN5E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -15,17 +15,13 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ProgressBar
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import com.example.bdreminder.Controller.FileManager
 import com.example.bdreminder.Model.Reminders
-import com.google.gson.Gson
-import java.io.BufferedWriter
-import java.io.File
-import java.io.FileWriter
 import java.util.Calendar
 
 class AddActivity : AppCompatActivity() {
@@ -36,6 +32,7 @@ class AddActivity : AppCompatActivity() {
     lateinit var datePick : TextView
     lateinit var hourPick : TextView
     lateinit var typePick : Spinner
+    lateinit var progressBar: ProgressBar
 
     var name : String = ""
     var description : String = ""
@@ -55,7 +52,7 @@ class AddActivity : AppCompatActivity() {
             name = nameText.text.toString()
             description = descriptionText.text.toString()
 
-            var reminder = Reminders(name, description, ejectTime, day, month, year, type)
+            var reminder = Reminders("", name, description, ejectTime, day, month, year, type)
 
             if (reminder.dataIsValid()) {
                 saveNewReminder(reminder)
@@ -125,18 +122,16 @@ class AddActivity : AppCompatActivity() {
         datePick = findViewById(R.id.date_picker)
         hourPick = findViewById(R.id.hour_picker)
         typePick = findViewById(R.id.type_selector)
+        progressBar = findViewById(R.id.addProgressBar)
 
+        progressBar.visibility = ProgressBar.GONE
         typePick.adapter = adapter
     }
 
     private fun saveNewReminder(reminder: Reminders) {
         val manager = FileManager(this)
-        val actualData = manager.readFromDB()
+        manager.addReminder(reminder, progressBar)
 
-        val olds = manager.convertToObject(actualData)
-        manager.writeToDB(reminder, olds)
-
-        Toast.makeText(this@AddActivity, "Reminder saved!", Toast.LENGTH_SHORT).show()
         finish()
     }
 

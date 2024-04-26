@@ -1,13 +1,23 @@
 package com.example.bdreminder.Controller
 
+import android.annotation.SuppressLint
 import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.RectF
+import android.view.MotionEvent
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 
+
 class ReminderTouchHelper(val adapter: ReminderAdapter) : ItemTouchHelper.Callback() {
+    enum class ButtonsState {
+        GONE,
+        LEFT_VISIBLE,
+        RIGHT_VISIBLE
+    }
+
+    var swipeBack : Boolean = false
+    var buttonShowedState : ButtonsState = ButtonsState.GONE
+    var buttonWidth : Float = 300F
+
     override fun getMovementFlags(
         recyclerView: RecyclerView,
         viewHolder: RecyclerView.ViewHolder
@@ -29,6 +39,15 @@ class ReminderTouchHelper(val adapter: ReminderAdapter) : ItemTouchHelper.Callba
         val position = viewHolder.absoluteAdapterPosition
     }
 
+    override fun convertToAbsoluteDirection(flags: Int, layoutDirection: Int): Int {
+        if (swipeBack) {
+            swipeBack  = false
+            return 0
+        }
+
+        return super.convertToAbsoluteDirection(flags, layoutDirection)
+    }
+
     override fun onChildDraw(
         c: Canvas,
         recyclerView: RecyclerView,
@@ -39,47 +58,101 @@ class ReminderTouchHelper(val adapter: ReminderAdapter) : ItemTouchHelper.Callba
         isCurrentlyActive: Boolean
     ) {
         if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
-            val iconSize = 5
-            val itemView = viewHolder.itemView
-            val maxDx = (iconSize * 2).toFloat() // Máxima cantidad de desplazamiento permitida
-            val actualDx = if (dX < -maxDx) -maxDx else dX // Limita el desplazamiento
-
-            // Dibuja el fondo
-            val background = RectF(
-                itemView.right + actualDx,
-                itemView.top.toFloat(),
-                itemView.right.toFloat(),
-                itemView.bottom.toFloat()
-            )
-            val paint = Paint()
-            paint.color = Color.RED // Color de fondo
-            c.drawRect(background, paint)
-
-            // Dibuja el icono
-            val iconLeftMargin = (itemView.right - iconSize + actualDx).toInt()
-            val iconTopMargin = (itemView.top + (itemView.height - iconSize) / 2).toInt()
-            val iconRightMargin = (itemView.right + actualDx).toInt()
-            val iconBottomMargin = (iconTopMargin + iconSize).toInt()
-            paint.color = Color.WHITE // Color del icono
-            c.drawRect(
-                iconLeftMargin.toFloat(),
-                iconTopMargin.toFloat(),
-                iconRightMargin.toFloat(),
-                iconBottomMargin.toFloat(),
-                paint
-            )
-
-            // Detecta si el usuario presiona el icono
-            if (dX < -iconSize) {
-                // El usuario ha deslizado lo suficiente para revelar el icono
-                // Puedes mostrar una indicación visual o realizar la eliminación directamente
-                if (isCurrentlyActive) {
-                    // Realiza la eliminación aquí (opcional)
-                    // adapter.removeItem(viewHolder.adapterPosition)
-                }
-            }
+            setTouchListener(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
         }
 
-        super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+        super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setTouchListener(
+        c: Canvas,
+        recyclerView: RecyclerView,
+        viewHolder: RecyclerView.ViewHolder,
+        dX: Float, dY: Float,
+        actionState: Int, isCurrentlyActive: Boolean
+    ) {
+        recyclerView.setOnTouchListener { v, event ->
+            swipeBack = event.action == MotionEvent.ACTION_CANCEL || event.action == MotionEvent.ACTION_UP
+            if (swipeBack) {
+                if (dX < -buttonWidth) {
+                    buttonShowedState = ButtonsState.RIGHT_VISIBLE
+                } else if (dX > buttonWidth) {
+                    buttonShowedState = ButtonsState.LEFT_VISIBLE
+                }
+
+                if (buttonShowedState != ButtonsState.GONE) {
+                    setTouchDownListener(
+                        c,
+                        recyclerView,
+                        viewHolder,
+                        dX,
+                        dY,
+                        actionState,
+                        isCurrentlyActive
+                    )
+                    setItemsClickable(recyclerView, false)
+                }
+            }
+            false
+        }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setTouchDownListener(
+        c: Canvas,
+        recyclerView: RecyclerView,
+        viewHolder: RecyclerView.ViewHolder,
+        dX: Float, dY: Float,
+        actionState: Int, isCurrentlyActive: Boolean
+    ) {
+        recyclerView.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                setTouchUpListener(
+                    c,
+                    recyclerView,
+                    viewHolder,
+                    dX,
+                    dY,
+                    actionState,
+                    isCurrentlyActive
+                )
+            }
+            false
+        }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setTouchUpListener(
+        c: Canvas,
+        recyclerView: RecyclerView,
+        viewHolder: RecyclerView.ViewHolder,
+        dX: Float, dY: Float,
+        actionState: Int, isCurrentlyActive: Boolean
+    ) {
+        recyclerView.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_UP) {
+                super.onChildDraw(
+                    c,
+                    recyclerView,
+                    viewHolder,
+                    0f,
+                    dY,
+                    actionState,
+                    isCurrentlyActive
+                )
+                recyclerView.setOnTouchListener { v, event -> false }
+                setItemsClickable(recyclerView, true)
+                swipeBack = false
+                buttonShowedState = ButtonsState.GONE
+            }
+            false
+        }
+    }
+
+    private fun setItemsClickable(recyclerView: RecyclerView, isClickable: Boolean) {
+        for (i in 0 until recyclerView.childCount) {
+            recyclerView.getChildAt(i).isClickable = isClickable
+        }
     }
 }
