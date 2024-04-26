@@ -6,17 +6,19 @@ import android.widget.ProgressBar
 import android.widget.Toast
 import com.example.bdreminder.Model.Reminders
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
-import com.google.gson.Gson
-import java.io.File
-import java.io.FileWriter
 
 class FileManager(var context: Context) {
     val filename = "db.json"
     val db = Firebase.firestore
 
-    fun getReminders(callback: (MutableList<Reminders>) -> Unit) {
-        db.collection("Reminders").get().addOnSuccessListener { result ->
+    fun getReminders(callback: (MutableList<Reminders>) -> Unit, failure: (Exception) -> Unit) {
+        db.collection("Reminders")
+            .orderBy("month", Query.Direction.ASCENDING)
+            .orderBy("day",Query.Direction.ASCENDING)
+            .get().
+            addOnSuccessListener { result ->
             val lista = mutableListOf<Reminders>()
             for (reminder in result) {
                 Log.d("Reminder ${reminder.id}", "${reminder.data}")
@@ -36,6 +38,7 @@ class FileManager(var context: Context) {
             }
         }.addOnFailureListener { exception ->
             Log.w("Error getting documents","Error: $exception")
+            failure(exception)
         }
     }
 

@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -41,12 +42,17 @@ class MainActivity : AppCompatActivity() {
         init()
         actualButton = eventButton
 
-        FileManager(this).getReminders(){ lista ->
+        FileManager(this).getReminders({ lista ->
             progressBar.visibility = ProgressBar.GONE
             list = lista
             setList()
             initList()
-        }
+            R.drawable.delete_item
+        },
+        { exception ->
+            progressBar.visibility = ProgressBar.GONE
+            Toast.makeText(this, "Error obteniendo lista de Recordatorios.", Toast.LENGTH_SHORT).show()
+        })
 
         eventButton.setOnClickListener {
             actualType = Reminders.ReminderTypes.EVENT
@@ -72,11 +78,15 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
 
         progressBar.visibility = ProgressBar.VISIBLE
-        FileManager(this).getReminders(){ lista ->
+        FileManager(this).getReminders({ lista ->
             progressBar.visibility = ProgressBar.GONE
             list = lista
             setList()
-        }
+        },
+        { exception ->
+            progressBar.visibility = ProgressBar.GONE
+            Toast.makeText(this, "Error obteniendo lista de Recordatorios.", Toast.LENGTH_SHORT).show()
+        })
     }
 
     private fun init() {
@@ -92,7 +102,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun initList() {
         itemDecoration = ReminderItemDecorator()
-        itemTouchHelper = ItemTouchHelper(ReminderTouchHelper(adapter))
+        itemTouchHelper = ItemTouchHelper(ReminderTouchHelper(adapter,this))
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.addItemDecoration(itemDecoration)
