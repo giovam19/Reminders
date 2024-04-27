@@ -1,5 +1,6 @@
 package com.example.bdreminder
 
+import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.DatePickerDialog
 import android.app.NotificationManager
@@ -8,8 +9,11 @@ import android.app.TimePickerDialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.Settings
+import android.util.Log
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -19,8 +23,10 @@ import android.widget.ProgressBar
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.example.bdreminder.Controller.FileManager
+import com.example.bdreminder.Controller.NotificationReceiver
 import com.example.bdreminder.Model.Reminders
 import java.util.Calendar
 
@@ -42,6 +48,7 @@ class AddActivity : AppCompatActivity() {
     var year: Int = 0
     var type : Reminders.ReminderTypes = Reminders.ReminderTypes.EVENT
 
+    @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.add_reminder)
@@ -90,7 +97,8 @@ class AddActivity : AppCompatActivity() {
             val minute = calendar.get(Calendar.MINUTE)
 
             val timePickerDialog = TimePickerDialog(this, TimePickerDialog.OnTimeSetListener { view, selectedHour, selectedMinute ->
-                val horaSeleccionada = "$selectedHour:$selectedMinute"
+                val minuteText = if (selectedMinute < 10) "0$selectedMinute" else selectedMinute.toString()
+                val horaSeleccionada = "$selectedHour:$minuteText"
                 hourPick.text = horaSeleccionada
 
                 ejectTime = horaSeleccionada
@@ -128,51 +136,85 @@ class AddActivity : AppCompatActivity() {
         typePick.adapter = adapter
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     private fun saveNewReminder(reminder: Reminders) {
         val manager = FileManager(this)
-        manager.addReminder(reminder, progressBar)
+
+        progressBar.visibility = ProgressBar.VISIBLE
+
+        manager.addReminder(reminder, {
+            progressBar.visibility = ProgressBar.GONE
+            Toast.makeText(this, "Reminder saved!", Toast.LENGTH_SHORT).show()
+            setNotification(reminder)
+
+            Log.d("Notification", "Notification setted")
+        },
+        { exception ->
+            progressBar.visibility = ProgressBar.GONE
+            Toast.makeText(this, "Fail saving Reminder", Toast.LENGTH_SHORT).show()
+        })
 
         finish()
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     fun setNotification(reminder: Reminders) {
         val hours = reminder.ejectTime.split(":")
         val hour = hours[0].toInt()
-        val minute = if(reminder.type == Reminders.ReminderTypes.EVENT) hours[1].toInt() else 0
+        val minute = hours[1].toInt()
 
-        val calendar = android.icu.util.Calendar.getInstance()
-        calendar.set(android.icu.util.Calendar.YEAR, reminder.year)
-        calendar.set(android.icu.util.Calendar.MONTH, reminder.month-1)
-        calendar.set(android.icu.util.Calendar.DAY_OF_MONTH, reminder.day)
-        calendar.set(android.icu.util.Calendar.HOUR_OF_DAY, hour)
-        calendar.set(android.icu.util.Calendar.MINUTE, minute)
-        calendar.set(android.icu.util.Calendar.SECOND, 0)
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.YEAR, reminder.year)
+        calendar.set(Calendar.MONTH, reminder.month-1)
+        calendar.set(Calendar.DAY_OF_MONTH, reminder.day)
+        calendar.set(Calendar.HOUR_OF_DAY, hour)
+        calendar.set(Calendar.MINUTE, minute)
+        calendar.set(Calendar.SECOND, 0)
 
-        val intent = Intent(this, MyReceiver::class.java)
+        Log.i("Notification info", "Day: ${reminder.day}, month: ${reminder.month-1}, year: ${reminder.year}, hour: $hour, minute: $minute")
+
         val titulo = if (reminder.type == Reminders.ReminderTypes.EVENT) "${reminder.name} 📝" else "${reminder.name} 🎉"
-        intent.putExtra("titulo", titulo)
-        intent.putExtra("descripcion", reminder.description)
+        val intent = Intent(this, NotificationReceiver::class.java)
 
-        val pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val activityIntent = Intent(this, MainActivity::class.java)
+        val activityPending = PendingIntent.getActivity(
+            this,
+            0,
+            activityIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
 
-        alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
+        intent.putExtra("title", titulo)
+        intent.putExtra("description", reminder.description)
+        intent.putExtra("pending_intent", activityPending)
+
+        setNotificationForExactTime(this, calendar, intent)
     }
 
-    class MyReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            val titulo = intent?.getStringExtra("titulo")
-            val descripcion = intent?.getStringExtra("descripcion")
+    @RequiresApi(Build.VERSION_CODES.S)
+    fun setNotificationForExactTime(context: Context, calendar: Calendar, intent: Intent) {
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
 
-            val notificationId = 1
-            val notificationManager = context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            val notificationBuilder = NotificationCompat.Builder(context, "channel_id")
-                .setContentTitle(titulo)
-                .setContentText(descripcion)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .build()
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-            notificationManager.notify(notificationId, notificationBuilder)
+        try {
+            alarmManager.setExact(
+                AlarmManager.RTC_WAKEUP,
+                calendar.timeInMillis,
+                pendingIntent
+            )
+
+            Log.d("Exact Notification", "Notification setted corrected")
+        } catch (e: SecurityException) {
+            val permissionIntent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+            context.startActivity(permissionIntent)
+
+            Log.w("Exact Notification", "Notification failed setting")
         }
     }
 }

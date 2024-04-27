@@ -46,8 +46,7 @@ class MainActivity : AppCompatActivity() {
             progressBar.visibility = ProgressBar.GONE
             list = lista
             setList()
-            initList()
-            R.drawable.delete_item
+            configList()
         },
         { exception ->
             progressBar.visibility = ProgressBar.GONE
@@ -100,7 +99,7 @@ class MainActivity : AppCompatActivity() {
         blackColor = ContextCompat.getColor(this, R.color.black)
     }
 
-    private fun initList() {
+    private fun configList() {
         itemDecoration = ReminderItemDecorator()
         itemTouchHelper = ItemTouchHelper(ReminderTouchHelper(adapter,this))
 

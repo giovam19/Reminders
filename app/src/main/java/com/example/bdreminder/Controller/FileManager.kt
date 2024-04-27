@@ -10,8 +10,7 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 
 class FileManager(var context: Context) {
-    val filename = "db.json"
-    val db = Firebase.firestore
+    private val db = Firebase.firestore
 
     fun getReminders(callback: (MutableList<Reminders>) -> Unit, failure: (Exception) -> Unit) {
         db.collection("Reminders")
@@ -42,7 +41,7 @@ class FileManager(var context: Context) {
         }
     }
 
-    fun addReminder(reminder: Reminders, progressBar: ProgressBar) {
+    fun addReminder(reminder: Reminders, callback: () -> Unit, failure: (Exception) -> Unit) {
         val obj = hashMapOf(
             "name" to reminder.name,
             "description" to reminder.description,
@@ -53,17 +52,12 @@ class FileManager(var context: Context) {
             "type" to reminder.type
         )
 
-        progressBar.visibility = ProgressBar.VISIBLE
         db.collection("Reminders").add(obj).addOnSuccessListener { added ->
             Log.d("Reminder added Firebase: ", added.id)
-
-            progressBar.visibility = ProgressBar.GONE
-            Toast.makeText(context, "Reminder saved!", Toast.LENGTH_SHORT).show()
+            callback()
         }.addOnFailureListener { e ->
             Log.w("Error adding Reminder Firebase: ", e)
-
-            progressBar.visibility = ProgressBar.GONE
-            Toast.makeText(context, "Fail saving Reminder", Toast.LENGTH_SHORT).show()
+            failure(e)
         }
     }
 }
